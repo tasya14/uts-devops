@@ -1,0 +1,45 @@
+name: Terraform IaC with Docker Provider
+
+on:
+  push:
+    branches:
+      - main
+      - feature/login
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Docker socket permissions
+        run: |
+          sudo chmod 666 /var/run/docker.sock
+
+      - name: Terraform Init
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            hashicorp/terraform:1.5 init
+
+      - name: Terraform Plan
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            hashicorp/terraform:1.5 plan
+
+      - name: Terraform Apply
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            hashicorp/terraform:1.5 apply -auto-approve
